@@ -3,7 +3,7 @@ set -e
 
 # Arch Linux Install Script Recovery (alis-recovery) start a recovery for an
 # failed installation or broken system.
-# Copyright (C) 2021 picodotdev
+# Copyright (C) 2022 picodotdev
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -120,6 +120,7 @@ function check_variables() {
         check_variables_list "PARTITION_MODE" "$PARTITION_MODE" "auto" "true"
     fi
     check_variables_value "PING_HOSTNAME" "$PING_HOSTNAME"
+    check_variables_value "CHROOT" "$CHROOT"
 }
 
 function check_variables_value() {
@@ -179,9 +180,11 @@ function warning() {
     echo "We will mount your system based on the settings"
     echo "of the alis-recovery.conf file."
     echo
-	echo "You will need to arch-chroot into /mnt"
-	echo "arch-chroot /mnt"
-	echo
+    echo "You will need to arch-chroot into /mnt"
+    echo "arch-chroot /mnt"
+    echo
+    echo "or you can set the parameter CHROOT in the alis-recovery.conf to true."
+    echo
     echo "Once recovery tasks are finalized execute following commands:"
     echo "exit, umount -R /mnt and reboot."
     echo ""
@@ -346,9 +349,11 @@ function partition() {
     PARTITION_ROOT_NUMBER="$PARTITION_ROOT"
     PARTITION_BOOT_NUMBER="${PARTITION_BOOT_NUMBER//\/dev\/sda/}"
     PARTITION_BOOT_NUMBER="${PARTITION_BOOT_NUMBER//\/dev\/nvme0n1p/}"
+    PARTITION_BOOT_NUMBER="${PARTITION_BOOT_NUMBER//\/dev\/vda/}"
     PARTITION_BOOT_NUMBER="${PARTITION_BOOT_NUMBER//\/dev\/mmcblk0p/}"
     PARTITION_ROOT_NUMBER="${PARTITION_ROOT_NUMBER//\/dev\/sda/}"
     PARTITION_ROOT_NUMBER="${PARTITION_ROOT_NUMBER//\/dev\/nvme0n1p/}"
+    PARTITION_ROOT_NUMBER="${PARTITION_ROOT_NUMBER//\/dev\/vda/}"
     PARTITION_ROOT_NUMBER="${PARTITION_ROOT_NUMBER//\/dev\/mmcblk0p/}"
 
     # luks and lvm
@@ -384,7 +389,23 @@ function partition() {
 }
 
 function recovery() {
-    arch-chroot /mnt
+    arch-chroot /mnt /usr/bin/bash
+}
+
+function end() {
+    if [ "$CHROOT" == "true" ]; then
+        echo ""
+        echo "Recovery finalized. You must do an explicit reboot (./alis-reboot.sh)."
+    else
+        echo ""
+        echo "Recovery started. You must do an explicit reboot after finalize recovery (exit if in arch-chroot, ./alis-reboot.sh)."
+    fi
+}
+
+function do_reboot() {
+    umount -R /mnt/boot
+    umount -R /mnt
+    reboot
 }
 
 function main() {
@@ -396,7 +417,10 @@ function main() {
     facts
     prepare
     partition
-    #recovery
+    if [ "$CHROOT" == "true" ]; then
+        recovery
+    fi
+    end
 }
 
 main
