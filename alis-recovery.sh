@@ -40,7 +40,7 @@ set -e
 # Usage:
 # # loadkeys es
 # # iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
-# # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, or with URL shortener curl -sL https://bit.ly/2F3CATp | bash
+# # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, or with URL shortener curl -sL https://git.io/JeaH6 | bash
 # # vim alis-recovery.conf
 # # ./alis-recovery.sh
 
@@ -176,7 +176,11 @@ function check_variables_size() {
 function warning() {
     echo -e "${LIGHT_BLUE}Welcome to Arch Linux Install Script Recovery${NC}"
     echo ""
-    echo "Once finalized recovery tasks execute following commands: exit, umount -R /mnt, reboot."
+    echo "We will use arch-chroot and mount your system based on the settings"
+    echo "of the alis-recovery.conf file."
+    echo
+    echo "Once finalized recovery tasks execute following commands:"
+    echo "umount -R /mnt, reboot."
     echo ""
     read -p "Do you want to continue? [y/N] " yn
     case $yn in
@@ -231,8 +235,8 @@ function facts() {
     fi
 }
 
-function check_facts() {
-}
+#function check_facts() {
+#}
 
 function prepare() {
     prepare_partition
@@ -389,11 +393,21 @@ function main() {
     warning
     init
     facts
-    check_facts
+    #check_facts
     prepare
     partition
     #recovery
 }
 
 main
-
+echo
+echo "Your system has been mounted in /mnt."
+echo "Chroot into your system with"
+echo "arch-chroot /mnt"
+echo "Once recovery tasks are finalized execute following commands:"
+echo "To get out of arch-chroot"
+echo "     exit"
+echo "To unmount"
+echo "     umount -R /mnt"
+echo "Now you can reboot."
+echo "     reboot"

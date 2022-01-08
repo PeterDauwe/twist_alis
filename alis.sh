@@ -36,11 +36,13 @@ set -e
 # Usage:
 # # loadkeys es
 # # iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
-# # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash -s -- -u [github user], or with URL shortener curl -sL https://bit.ly/2F3CATp | bash
+# # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash -s -- -u [github user], or with URL shortener curl -sL https://git.io/JeaH6 | bash
 # # vim alis.conf
 # # ./alis.sh
 
 # global variables (no configuration, don't edit)
+START_TIMESTAMP=""
+END_TIMESTAMP=""
 ASCIINEMA=""
 BIOS_TYPE=""
 PARTITION_BOOT=""
@@ -202,7 +204,7 @@ function check_variables() {
     check_variables_value "HOOKS" "$HOOKS"
     check_variables_list "BOOTLOADER" "$BOOTLOADER" "grub refind systemd" "true" "true"
     check_variables_list "CUSTOM_SHELL" "$CUSTOM_SHELL" "bash zsh dash fish" "true" "true"
-    check_variables_list "DESKTOP_ENVIRONMENT" "$DESKTOP_ENVIRONMENT" "gnome kde xfce mate cinnamon lxde i3-wm i3-gaps deepin" "false" "true"
+    check_variables_list "DESKTOP_ENVIRONMENT" "$DESKTOP_ENVIRONMENT" "gnome kde xfce mate cinnamon lxde i3-wm i3-gaps deepin budgie" "false" "true"
     check_variables_boolean "PACKAGES_MULTILIB" "$PACKAGES_MULTILIB"
     check_variables_boolean "PACKAGES_INSTALL" "$PACKAGES_INSTALL"
     check_variables_boolean "VAGRANT" "$VAGRANT"
@@ -298,6 +300,8 @@ function init_log() {
     if [ "$LOG" == "true" ]; then
         exec > >(tee -a $LOG_FILE)
         exec 2> >(tee -a $LOG_FILE >&2)
+        date -u -d @$(($(date -d "$Value2" '+%s') - $(date -d "$Value1" '+%s'))) '+%T'
+        date -u -d @$(($(date -d "$END_TIMESTAMP" '+%s') - $(date -d "$START_TIMESTAMP" '+%s'))) '+%T'
     fi
     set -o xtrace
 }
@@ -897,6 +901,9 @@ function mkinitcpio_configuration() {
     fi
     if [ "$FILE_SYSTEM_TYPE" == "btrfs" ]; then
         pacman_install "btrfs-progs"
+    fi
+    if [ "$FILE_SYSTEM_TYPE" == "xfs" ]; then
+        pacman_install "xfsprogs"
     fi
     if [ "$FILE_SYSTEM_TYPE" == "f2fs" ]; then
         pacman_install "f2fs-tools"
@@ -1646,6 +1653,9 @@ function desktop_environment() {
         "deepin" )
             desktop_environment_deepin
             ;;
+        "budgie" )
+            desktop_environment_budgie
+            ;;
     esac
 
     arch-chroot /mnt systemctl set-default graphical.target
@@ -1672,7 +1682,7 @@ function desktop_environment_mate() {
 }
 
 function desktop_environment_cinnamon() {
-    pacman_install "cinnamon lightdm lightdm-gtk-greeter xorg-server"
+    pacman_install "cinnamon gnome-terminal lightdm lightdm-gtk-greeter xorg-server"
     arch-chroot /mnt systemctl enable lightdm.service
 }
 
@@ -1695,6 +1705,11 @@ function desktop_environment_deepin() {
     pacman_install "deepin deepin-extra deepin-kwin xorg xorg-server"
     arch-chroot /mnt sed -i 's/^#greeter-session=.*/greeter-session=lightdm-deepin-greeter/' /etc/lightdm/lightdm.conf
     arch-chroot /mnt systemctl enable lightdm.service
+}
+
+function desktop_environment_budgie() {
+    pacman_install "budgie-desktop budgie-desktop-view budgie-screensaver gnome-control-center network-manager-applet gnome"
+    arch-chroot /mnt systemctl enable gdm.service
 }
 
 function packages() {
@@ -1957,6 +1972,7 @@ function main() {
     fi
 
     # execute steps
+    START_TIMESTAMP=$(date -u +"%F %T")
     execute_step "configuration_install" "${STEPS}"
     execute_step "sanitize_variables" "${STEPS}"
     execute_step "check_variables" "${STEPS}"
@@ -1994,6 +2010,9 @@ function main() {
         execute_step "vagrant" "${STEPS}"
     fi
     execute_step "systemd_units" "${STEPS}"
+    END_TIMESTAMP=$(date -u +"%F %T")
+    INSTALLATION_TIME=$(date -u -d @$(($(date -d "$END_TIMESTAMP" '+%s') - $(date -d "$START_TIMESTAMP" '+%s'))) '+%T')
+    echo "Installation start $START_TIMESTAMP, end $END_TIMESTAMP, time $INSTALLATION_TIME"
     execute_step "end" "${STEPS}"
 }
 
