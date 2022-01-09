@@ -53,7 +53,7 @@ For new features, improvements and bugs fill an issue in GitHub or make a pull r
 * **Partition**: no LVM, LVM, LVM on LUKS, GPT on UEFI, MBR on BIOS
 * **File system**: ext4, btrfs (with subvols), xfs, f2fs, reiserfs
 * **Kernels**: linux, linux-lts, linux-hardened, linux-zen
-* **Desktop environment**: GNOME, KDE, XFCE, Mate, Cinnamon, LXDE, i3-wm, i3-gaps, Deepin, Budgie
+* **Desktop environment**: GNOME, KDE, XFCE, Mate, Cinnamon, LXDE, i3-wm, i3-gaps, Deepin, Budgie, Bspwm, Awesome, Qtile, Leftwm
 * **Display managers**: GDM, SDDM, Lightdm, lxdm
 * **Graphics controller**: intel, nvidia and amd with optionally early KMS start. With intel optionally fastboot, hardware video acceleration and framebuffer compression.
 * **Bootloader**: GRUB, rEFInd, systemd-boot
@@ -69,7 +69,7 @@ For new features, improvements and bugs fill an issue in GitHub or make a pull r
 * **systemd-homed** support
 * **PipeWire** support
 * **Multilib** support
-* **Arch Linux** common and custom **packages installation**
+* Pacman custom **packages installation** and **custom repositories**
 * Flatpak utility installation and **Flatpak packages installation**
 * SDKMAN utility installation and **SDKMAN packages installation**
 * **AUR utility** installation (paru, yay, aurman) and **AUR packages installation**
@@ -160,7 +160,7 @@ Arch Linux base installation installed in **less than 4 minutes** with a fiber i
 
 ### Media reference
 
-* 2021.02 [Arch + Alis, Arco Linux](https://www.arcolinuxiso.com/aa/) ([video playlist](https://www.youtube.com/playlist?list=PLlloYVGq5pS7lMblPjiifVxxnMAqYzBU5))
+* 2022.01 [Arch + Alis, Arco Linux](https://www.arcolinuxiso.com/aa/) ([video playlist](https://www.youtube.com/playlist?list=PLlloYVGq5pS7lMblPjiifVxxnMAqYzBU5))
 * 2020.07 [Arch installer - alis](https://r1ce.net/2020/07/07/arch-installer-alis/)
 * 2019.06 [Arch Linux OS Challenge: Install Arch 'The Easy Way' With These 2 Alternative Methods](https://www.forbes.com/sites/jasonevangelho/2019/06/10/arch-linux-os-challenge-2-alternatives-install-gui-script-easy/)
 
@@ -191,10 +191,17 @@ https://www.archlinux.org/download/
 
 ### Reference
 
+* https://archlinux.org/pacman/pacman.conf.5.html#_repository_sections
+* https://tldp.org/LDP/abs/html/
+* https://tldp.org/LDP/Bash-Beginners-Guide/html/
 * https://wiki.archlinux.org/title/AMDGPU
 * https://wiki.archlinux.org/title/Arch_User_Repository
 * https://wiki.archlinux.org/title/ATI
 * https://wiki.archlinux.org/title/Bluetooth
+* https://wiki.archlinux.org/title/Bspwm
+* https://wiki.archlinux.org/title/Awesome
+* https://wiki.archlinux.org/title/Qtile
+* https://wiki.archlinux.org/title/Leftwm
 * https://wiki.archlinux.org/title/Btrfs
 * https://wiki.archlinux.org/title/Budgie
 * https://wiki.archlinux.org/title/Category:Boot_loaders
@@ -212,6 +219,7 @@ https://www.archlinux.org/download/
 * https://wiki.archlinux.org/title/General_recommendations
 * https://wiki.archlinux.org/title/GNOME
 * https://wiki.archlinux.org/title/GRUB
+* https://wiki.archlinux.org/title/Hardware_video_acceleration
 * https://wiki.archlinux.org/title/I3
 * https://wiki.archlinux.org/title/Installation_guide
 * https://wiki.archlinux.org/title/Intel_graphics
@@ -250,6 +258,4 @@ https://www.archlinux.org/download/
 * https://wiki.archlinux.org/title/Xfce
 * https://wiki.archlinux.org/title/XFS
 * https://wiki.archlinux.org/title/Xorg
-* http://tldp.org/LDP/abs/html/
-* http://tldp.org/LDP/Bash-Beginners-Guide/html/
 
