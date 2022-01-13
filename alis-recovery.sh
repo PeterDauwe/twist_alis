@@ -45,8 +45,6 @@ set -e
 # # ./alis-recovery.sh
 
 # global variables (no configuration, don't edit)
-START_TIMESTAMP=""
-END_TIMESTAMP=""
 ASCIINEMA=""
 BIOS_TYPE=""
 PARTITION_BOOT=""
@@ -58,7 +56,6 @@ DEVICE_LVM=""
 LUKS_DEVICE_NAME="cryptroot"
 LVM_VOLUME_GROUP="vg"
 LVM_VOLUME_LOGICAL="root"
-SWAPFILE="/swapfile"
 BOOT_DIRECTORY=""
 ESP_DIRECTORY=""
 #PARTITION_BOOT_NUMBER=0
@@ -70,22 +67,15 @@ DEVICE_SATA=""
 DEVICE_NVME=""
 DEVICE_MMC=""
 CPU_VENDOR=""
-GPU_VENDOR=""
 VIRTUALBOX=""
-VMWARE=""
 CMDLINE_LINUX_ROOT=""
 CMDLINE_LINUX=""
-BTRFS_SUBVOLUME_ROOT=()
-BTRFS_SUBVOLUME_SWAP=()
-
-# configuration variables declartion (no configuration, don't edit)
-declare -A SYSTEMD_HOMED_STORAGE_LUKS
-declare -A SYSTEMD_HOMED_STORAGE_CIFS
+ADDITIONAL_USER_NAMES_ARRAY=()
+ADDITIONAL_USER_PASSWORDS_ARRAY=()
 
 CONF_FILE="alis-recovery.conf"
 GLOBALS_FILE="alis-globals.conf"
 LOG_FILE="alis-recovery.log"
-ASCIINEMA_FILE="alis-recovery.asciinema"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -98,19 +88,10 @@ function configuration_install() {
 
 function sanitize_variables() {
     DEVICE=$(sanitize_variable "$DEVICE")
-    FILE_SYSTEM_TYPE=$(sanitize_variable "$FILE_SYSTEM_TYPE")
     PARTITION_MODE=$(sanitize_variable "$PARTITION_MODE")
     PARTITION_CUSTOMMANUAL_BOOT=$(sanitize_variable "$PARTITION_CUSTOMMANUAL_BOOT")
     PARTITION_CUSTOMMANUAL_ROOT=$(sanitize_variable "$PARTITION_CUSTOMMANUAL_ROOT")
-
-    for I in "${BTRFS_SUBVOLUMES_MOUNTPOINTS[@]}"; do
-        IFS=',' SUBVOLUME=($I)
-        if [ ${SUBVOLUME[0]} == "root" ]; then
-            BTRFS_SUBVOLUME_ROOT=("${SUBVOLUME[@]}")
-        elif [ ${SUBVOLUME[0]} == "swap" ]; then
-            BTRFS_SUBVOLUME_SWAP=("${SUBVOLUME[@]}")
-        fi
-    done
+    FILE_SYSTEM_TYPE=$(sanitize_variable "$FILE_SYSTEM_TYPE")
 }
 
 function sanitize_variable() {
@@ -241,12 +222,6 @@ function facts() {
         BIOS_TYPE="bios"
     fi
 
-    if [ -f "$ASCIINEMA_FILE" ]; then
-        ASCIINEMA="true"
-    else
-        ASCIINEMA="false"
-    fi
-
     DEVICE_SATA="false"
     DEVICE_NVME="false"
     DEVICE_MMC="false"
@@ -259,27 +234,11 @@ function facts() {
     fi
 
     if [ -n "$(lscpu | grep GenuineIntel)" ]; then
-        CPU_VENDOR="intel"
-    elif [ -n "$(lscpu | grep AuthenticAMD)" ]; then
-        CPU_VENDOR="amd"
+        CPU_INTEL="true"
     fi
 
-    if [ -n "$(lspci -nn | grep "\[03" | grep -i intel)" ]; then
-        GPU_VENDOR="intel"
-    elif [ -n "$(lspci -nn | grep "\[03" | grep -i amd)" ]; then
-        GPU_VENDOR="amd"
-    elif [ -n "$(lspci -nn | grep "\[03" | grep -i nvidia)" ]; then
-        GPU_VENDOR="nvidia"
-    elif [ -n "$(lspci -nn | grep "\[03" | grep -i vmware)" ]; then
-        GPU_VENDOR="vmware"
-    fi
-
-    if [ -n "$(systemd-detect-virt | grep -i oracle)" ]; then
+    if [ -n "$(lspci | grep -i virtualbox)" ]; then
         VIRTUALBOX="true"
-    fi
-
-    if [ -n "$(systemd-detect-virt | grep -i vmware)" ]; then
-        VMWARE="true"
     fi
 }
 
@@ -426,9 +385,9 @@ function partition() {
     # mount
     if [ "$FILE_SYSTEM_TYPE" == "btrfs" ]; then
         # mount subvolumes
-        mount -o "subvol=${BTRFS_SUBVOLUME_ROOT[1]},$PARTITION_OPTIONS_ROOT,compress=zstd" "$DEVICE_ROOT" /mnt
+        mount -o "subvol=${BTRFS_SUBVOLUME_ROOT[1]},$PARTITION_OPTIONS,compress=zstd" "$DEVICE_ROOT" "/mnt"
         mkdir -p /mnt/boot
-        mount -o "$PARTITION_OPTIONS_BOOT" "$PARTITION_BOOT" /mnt/boot
+        mount -o "$PARTITION_OPTIONS_BOOT" "$PARTITION_BOOT" "/mnt/boot"
         for I in "${BTRFS_SUBVOLUMES_MOUNTPOINTS[@]}"; do
             IFS=',' SUBVOLUME=($I)
             if [ ${SUBVOLUME[0]} == "root" ]; then
